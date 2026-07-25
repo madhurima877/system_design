@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
+	"notification-system/models"
 	pb "notification-system/proto/notification"
 
 	"google.golang.org/grpc"
@@ -12,10 +14,21 @@ import (
 
 func NotificationHandler(client pb.NotificationServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		client.SendNotification(context.Background(), &pb.SendNotificationRequest{
-			UserId:  "123",
-			Message: "Hi",
+		var req models.Message
+		err := json.NewDecoder(r.Body).Decode(&req)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		resp, err := client.SendNotification(context.Background(), &pb.SendNotificationRequest{
+			UserId:  req.UserId,
+			Message: req.Message,
 		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		json.NewEncoder(w).Encode(resp)
 	}
 }
 func main() {
