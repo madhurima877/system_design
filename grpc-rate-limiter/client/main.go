@@ -19,7 +19,7 @@ func main() {
 	}
 	defer conn.Close()
 	grpcClient := hello.NewGreeterClient(conn)
-	bucket := limiter.NewTokenBucket(5, 1)
+	bucket := limiter.NewTokenBucket(10, 1)
 	http.HandleFunc("/send/request", ClientHandler(grpcClient, bucket))
 
 	http.ListenAndServe(":8080", nil)
