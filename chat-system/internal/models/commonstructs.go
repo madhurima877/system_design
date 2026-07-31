@@ -22,3 +22,15 @@ type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+type Message struct {
+	ID         primitive.ObjectID `bson:"_id,omitempty"`
+	SenderID   string             `bson:"sender_id"`
+	ReceiverID string             `bson:"receiver_id"`
+	Content    string             `bson:"content"`
+	CreatedAt  time.Time          `bson:"created_at"`
+}
+type MessageRequest struct {
+	ReceiverID string `json:"receiver_id"`
+	Content    string `json:"content"`
+}

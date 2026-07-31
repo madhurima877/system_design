@@ -12,6 +12,22 @@ message SendMessageResponse {
     string id = 1;
     string status = 2;
 }
-service ChatService{
-    rpc SendMessage(SendMessageRequest) returns(SendMessageResponse);
+service ChatService {
+    rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+    rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse);
+}
+
+message Message {
+    string sender_id = 1;
+    string receiver_id = 2;
+    string content = 3;
+    string created_at = 4;
+}
+message GetMessagesRequest {
+    string sender_id = 1;
+    string receiver_id = 2;
+}
+
+message GetMessagesResponse {
+    repeated Message messages = 1;
 }

@@ -12,11 +12,14 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authorization := c.GetHeader("Authorization")
 		if authorization == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing authorization header"})
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "missing authorization header",
+			})
 			c.Abort()
 			return
 		}
-		parts := strings.Split(authorization, "")
+
+		parts := strings.Fields(authorization)
 		if len(parts) != 2 || parts[0] != "Bearer" {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid authorization header",
@@ -24,8 +27,12 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		tokenstring := parts[1]
-		token, err := jwt.Parse(tokenstring, func(token *jwt.Token) (interface{}, error) { return []byte("njbewbkju09j0o"), nil })
+
+		tokenString := parts[1]
+
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			return []byte("njbewbkju09j0o"), nil
+		})
 		if err != nil || !token.Valid {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid token",
@@ -33,6 +40,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -41,6 +49,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
 		userID, ok := claims["user_id"].(string)
 		if !ok {
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -49,6 +58,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
 		c.Set("userID", userID)
 		c.Next()
 	}
