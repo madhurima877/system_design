@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "proto/user";
+
+service UserService {
+    rpc CreateUser(UserRequest) returns (UserResponse);
+}
+
+message UserRequest {
+    string name = 1;
+    string email = 2;
+}
+
+message UserResponse {
+       int32 id = 1;
+    string message = 2;
+}

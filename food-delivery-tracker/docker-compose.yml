@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: food_delivery_db
+
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: food_delivery
+
+    ports:
+      - "15437:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
