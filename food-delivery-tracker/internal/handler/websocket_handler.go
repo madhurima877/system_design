@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 	wb "system_design/food-delivery-tracker/internal/websocket"
 
@@ -30,7 +31,12 @@ func (h *WebSocketHandler) HandleWebSocket(w http.ResponseWriter, r *http.Reques
 	defer conn.Close()
 	userID := "1"
 	h.hub.AddConnection(userID, conn)
-	defer h.hub.RemoveConnection(userID)
+	log.Println("Connected:", userID)
+
+	defer func() {
+		log.Println("Disconnected:", userID)
+		h.hub.RemoveConnection(userID)
+	}()
 	for {
 		_, _, err := conn.ReadMessage()
 		if err != nil {

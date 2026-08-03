@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"system_design/food-delivery-tracker/internal/db"
 	"system_design/food-delivery-tracker/internal/grpc"
+	"system_design/food-delivery-tracker/internal/notification"
 	"system_design/food-delivery-tracker/internal/websocket"
 	"system_design/food-delivery-tracker/proto/user"
 
@@ -42,16 +43,24 @@ func main() {
 	log.Println("Database Connected")
 	repo := repository.NewUserRepository(conn)
 	hub := websocket.NewHub()
-	service := service.NewUserService(repo, hub)
+	userService := service.NewUserService(repo, hub)
 	wsnHandler := handler.NewWebSocketHandler(hub)
-	handler := handler.NewUserHandler(service)
-	grpcHandler := grpc.NewUserServer(service)
+	userHandler := handler.NewUserHandler(userService)
+	grpcHandler := grpc.NewUserServer(userService)
 
 	user.RegisterUserServiceServer(grpcServer, grpcHandler)
 	reflection.Register(grpcServer)
+	notificationService := notification.NewService(hub)
+	orderRepo := repository.NewOrderRepository(conn)
+	orderService := service.NewOrderService(orderRepo, hub, notificationService)
+	orderHandler := handler.NewOrderHandler(orderService)
 
-	http.HandleFunc("/create/user", handler.CreateUser)
+	notificationService.Start()
+
+	http.HandleFunc("/create/user", userHandler.CreateUser)
 	http.HandleFunc("/ws", wsnHandler.HandleWebSocket)
+	http.HandleFunc("/order/status", orderHandler.UpdateOrderStatus)
+
 	http.HandleFunc("/notify", wsnHandler.Notify)
 	go func() {
 		log.Println("HTTP Server started on :8080")
@@ -70,6 +79,7 @@ func main() {
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 	<-sig
+	notificationService.Stop()
 	grpcServer.GracefulStop()
 
 }
